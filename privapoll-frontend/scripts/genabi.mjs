@@ -62,6 +62,11 @@ function readDeployment(chainName, chainId, contractName, optional) {
   const chainDeploymentDir = path.join(deploymentsDir, chainName);
 
   if (!fs.existsSync(chainDeploymentDir) && chainId === 31337) {
+    // Skip auto-deploy in CI/Vercel environments
+    if (process.env.VERCEL || process.env.CI) {
+      // In production/CI, localhost deployment is not needed
+      return undefined;
+    }
     // Try to auto-deploy the contract on hardhat node!
     deployOnHardhatNode();
   }
