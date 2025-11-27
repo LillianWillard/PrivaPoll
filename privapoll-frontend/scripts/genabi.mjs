@@ -80,12 +80,23 @@ function readDeployment(chainName, chainId, contractName, optional) {
 }
 
 // Auto deployed on Linux/Mac (will fail on windows)
-const deployLocalhost = readDeployment("localhost", 31337, CONTRACT_NAME, false /* optional */);
+// In Vercel/production, localhost may not exist, so make it optional
+const deployLocalhost = readDeployment("localhost", 31337, CONTRACT_NAME, true /* optional */);
 
-// Sepolia is optional
+// Sepolia is required for production
 let deploySepolia = readDeployment("sepolia", 11155111, CONTRACT_NAME, true /* optional */);
-if (!deploySepolia) {
+if (!deploySepolia && deployLocalhost) {
   deploySepolia = { abi: deployLocalhost.abi, address: "0x0000000000000000000000000000000000000000" };
+} else if (!deploySepolia && !deployLocalhost) {
+  console.error(`${line}No deployments found. Please deploy to Sepolia first.${line}`);
+  process.exit(1);
+}
+
+// Use Sepolia ABI as primary, fallback to localhost if available
+const primaryABI = deploySepolia ? deploySepolia.abi : (deployLocalhost ? deployLocalhost.abi : null);
+if (!primaryABI) {
+  console.error(`${line}No ABI found in deployments.${line}`);
+  process.exit(1);
 }
 
 if (deployLocalhost && deploySepolia) {
@@ -104,9 +115,10 @@ const tsCode = `
   This file is auto-generated.
   Command: 'npm run genabi'
 */
-export const ${CONTRACT_NAME}ABI = ${JSON.stringify({ abi: deployLocalhost.abi }, null, 2)} as const;
+export const ${CONTRACT_NAME}ABI = ${JSON.stringify({ abi: primaryABI }, null, 2)} as const;
 \n`;
 
+const localhostAddress = deployLocalhost ? deployLocalhost.address : "0x0000000000000000000000000000000000000000";
 const tsAddresses = `
 /*
   This file is auto-generated.
@@ -114,7 +126,7 @@ const tsAddresses = `
 */
 export const ${CONTRACT_NAME}Addresses = { 
   "11155111": { address: "${deploySepolia.address}", chainId: 11155111, chainName: "sepolia" },
-  "31337": { address: "${deployLocalhost.address}", chainId: 31337, chainName: "hardhat" },
+  "31337": { address: "${localhostAddress}", chainId: 31337, chainName: "hardhat" },
 };
 `;
 
