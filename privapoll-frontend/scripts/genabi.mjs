@@ -4,9 +4,6 @@ import * as path from "path";
 
 const CONTRACT_NAME = "PrivaPoll";
 
-// Path to fhevm-hardhat-template
-const rel = "../fhevm-hardhat-template";
-
 // Output directory for ABI files
 const outdir = path.resolve("./abi");
 
@@ -14,25 +11,36 @@ if (!fs.existsSync(outdir)) {
   fs.mkdirSync(outdir);
 }
 
-const dir = path.resolve(rel);
-const dirname = path.basename(dir);
-
 const line =
   "\n===================================================================\n";
 
-if (!fs.existsSync(dir)) {
-  console.error(
-    `${line}Unable to locate ${rel}. Expecting <root>/${dirname}${line}`
-  );
-  process.exit(1);
+// Try multiple possible paths for different environments
+// 1. Check if deployments are in current directory (Vercel build)
+let deploymentsDir = path.resolve("./deployments");
+if (!fs.existsSync(deploymentsDir)) {
+  // 2. Try from fhevm-hardhat-template (local development)
+  let rel = "../fhevm-hardhat-template";
+  if (!fs.existsSync(path.resolve(rel))) {
+    // 3. Try from root (monorepo setups)
+    rel = "../../fhevm-hardhat-template";
+  }
+  if (!fs.existsSync(path.resolve(rel))) {
+    // 4. Try absolute from current working directory
+    const cwd = process.cwd();
+    if (cwd.includes("privapoll-frontend")) {
+      rel = path.join(cwd, "..", "fhevm-hardhat-template");
+    }
+  }
+  const dir = path.resolve(rel);
+  if (fs.existsSync(dir)) {
+    deploymentsDir = path.join(dir, "deployments");
+  } else {
+    console.error(
+      `${line}Unable to locate deployments directory. Tried:\n- ./deployments\n- ${rel}/deployments${line}`
+    );
+    process.exit(1);
+  }
 }
-
-if (!fs.existsSync(outdir)) {
-  console.error(`${line}Unable to locate ${outdir}.${line}`);
-  process.exit(1);
-}
-
-const deploymentsDir = path.join(dir, "deployments");
 
 function deployOnHardhatNode() {
   if (process.platform === "win32") {
