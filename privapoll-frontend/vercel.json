@@ -1,9 +1,8 @@
 {
-  "buildCommand": "cd privapoll-frontend && npm run genabi && npm run build",
-  "outputDirectory": "privapoll-frontend/.next",
+  "buildCommand": "npm run genabi && npm run build",
+  "outputDirectory": ".next",
   "framework": "nextjs",
-  "installCommand": "cd privapoll-frontend && npm install",
-  "devCommand": "cd privapoll-frontend && npm run dev",
-  "rootDirectory": "privapoll-frontend"
+  "installCommand": "npm install",
+  "devCommand": "npm run dev"
 }
 

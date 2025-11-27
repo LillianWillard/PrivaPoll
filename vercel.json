@@ -3,7 +3,6 @@
   "outputDirectory": "privapoll-frontend/.next",
   "framework": "nextjs",
   "installCommand": "cd privapoll-frontend && npm install",
-  "devCommand": "cd privapoll-frontend && npm run dev",
-  "rootDirectory": "privapoll-frontend"
+  "devCommand": "cd privapoll-frontend && npm run dev"
 }
 
