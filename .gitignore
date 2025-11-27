@@ -40,6 +40,8 @@ build/
 # Deployment artifacts
 deployments/localhost/
 deployments/hardhat/
+# Allow Sepolia deployments for production builds
+!deployments/sepolia/
 cache/
 artifacts/
 
